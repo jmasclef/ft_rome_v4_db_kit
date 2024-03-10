@@ -1,5 +1,5 @@
 from pydantic import RootModel, BaseModel
-
+from sqlmodel import SQLModel, Field
 
 class OurBaseModel(BaseModel):
     pass

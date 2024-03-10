@@ -1,9 +1,8 @@
 import os
 import requests
-from pprint import pprint
 from dataclasses import dataclass
 from schemas import rome_schemas
-
+from server_cfg import general_logger
 
 @dataclass
 class FranceTravailClient:
@@ -33,6 +32,8 @@ class FranceTravailClient:
             raise Exception(f"Request failure 401, URL={url}: Unauthorized, check credentials")
         elif response.status_code == 404:
             raise Exception(f"Request failure 404, URL={url}: Not found")
+        elif response.status_code == 429:
+            raise OverflowError(f"Request failure 429, Out of quota")
         else:
             raise Exception(f"Request failure {response.status_code}: {response.content}")
 
@@ -145,22 +146,13 @@ class FranceTravailClient:
         """
         if code is None:
             url = "https://api.pole-emploi.io/partenaire/rome-metiers/v1/metiers/domaine-professionnel"
-            Schema = rome_schemas.Domaines
+            Schema = rome_schemas.DomainesMetiers
         else:
             url = f"https://api.pole-emploi.io/partenaire/rome-metiers/v1/metiers/domaine-professionnel/{code}"
-            Schema = rome_schemas.DomaineMetiers
+            Schema = rome_schemas.DomaineMetiersRead
 
         response = self.rome_request_get(url=url)
         return Schema.model_validate_json(response.text)
 
 
-if __name__ == '__main__':
-    # ft_client = FranceTravailClient(
-    #     client_id="PAR_testromev4asr_c0f296273b534af43bdd5d1b591b93a53d6a0405438dbae058e85d4a80450a45",
-    #     client_secret="a78dc88f59c0065801a4df2a7f6c76745a989c7b8959001ee4d3bab71feba992")
-    ft_client = FranceTravailClient(load_credentials_from_env=True)
-    domaines= ft_client.get_domaines()
-    pprint(domaines)
 
-    domaine=ft_client.get_domaines(code='A11')
-    pprint(domaine)

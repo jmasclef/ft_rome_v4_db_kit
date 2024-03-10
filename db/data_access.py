@@ -1,42 +1,15 @@
 from fastapi import FastAPI
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-# For SQLAlchemy: next line for 2.0, other line for 1.4
-from sqlalchemy.orm import declarative_base
-# from sqlalchemy.ext.declarative import declarative_base
+from sqlmodel import Field, Session, SQLModel, create_engine, select
 
-import os
-from constants import *
-from server_cfg import GENERAL_SERVER_EXECUTION_MODE, API_DB_USERNAME, API_DB_PWD, API_DB_HOSTNAME, DB_ENGINE_ECHO
-
-app = FastAPI()
-
-PWD = API_DB_PWD
-
-USERNAME = API_DB_USERNAME
-DB_NAME= API_DB_USERNAME
-DRIVER = "ODBC Driver 17 for SQL Server"
-
-engine_stmt = "mssql+pyodbc://%s:%s@%s/%s?driver=%s" % (USERNAME, PWD, API_DB_HOSTNAME, DB_NAME, DRIVER)
-# engine = create_engine(engine_stmt, echo=True, future=True, supports_comments=True)
-
-engine = create_engine(engine_stmt, echo=DB_ENGINE_ECHO, future=True)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
+from server_cfg import DB_ENGINE_ECHO, SQLITE_FILE_PATH
 
 
+sqlite_url = f"sqlite:///{SQLITE_FILE_PATH}"
+connect_args = {"check_same_thread": False}
+engine = create_engine(sqlite_url, echo=DB_ENGINE_ECHO, connect_args=connect_args)
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
 
-class NoReturningBase():
-    # Class to forbid default OUTPUT, solve occasional triggers issue
-    # DML statement cannot have any enabled triggers if the statement contains an OUTPUT clause without INTO clause
-    __table_args__ = {'implicit_returning': False}
-
-    @classmethod
-    def update_args(cls, table_args: dict):
-        # Method tu update the parent __table_args__ dict
-        # Used for
-        newargs = table_args.copy()
-        newargs.update(cls.__table_args__)
-        return newargs
+def get_session()-> Session:
+    with Session(engine) as session:
+        return session
