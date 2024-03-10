@@ -1,0 +1,1 @@
+{"config":{"lang":["en"],"separator":"[\\s\\-]+","pipeline":["stopWordFilter"]},"docs":[{"location":"","title":"Bienvenue","text":""},{"location":"about/","title":"A propos","text":"<p>Ce kit fournit une API compl\u00e8te avec serveur et donn\u00e9es du ROME v4</p>"}]}
